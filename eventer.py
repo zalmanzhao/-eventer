@@ -57,17 +57,18 @@ def main():
     else:
         host = "https://kubernetes.default.svc.cluster.local"
 
-    try:
-        with open('/run/secrets/kubernetes.io/serviceaccount/token') as file_object:
-            token = file_object.read()
-    except:
-        logging.info("read serviceaccount fail....")
-        sys.exit(1)
-
+    #try:
+    #    with open('/run/secrets/kubernetes.io/serviceaccount/token') as file_object:
+    #        token = file_object.read()
+    #except:
+    #    logging.info("read serviceaccount fail....")
+    #    sys.exit(1)
+        
+    config.load_incluster_config()
     configuration = client.Configuration()
-    configuration.api_key['authorization'] = token
-    configuration.api_key_prefix['authorization'] = 'Bearer'
-    configuration.host = host
+    #configuration.api_key['authorization'] = token
+    #configuration.api_key_prefix['authorization'] = 'Bearer'
+    #configuration.host = host
     configuration.verify_ssl = False
     v1 = client.CoreV1Api(client.ApiClient(configuration))
 
