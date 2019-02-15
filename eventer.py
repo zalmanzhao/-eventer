@@ -8,7 +8,8 @@ import os
 import threading
 from time import mktime, time
 
-MSG_TEMPLATE = "%s\nLevel: %s \nNamespace: %s \nName: %s \nMessage: %s \nReason: %s \nTimestamp: %s"
+POD_MSG_TEMPLATE = "%s\nType:%s \nLevel:%s \nNamespace:%s \nName:%s \nMessage:%s \nReason: %s \nTimestamp:%s"
+NODE_MSG_TEMPLATE = "%s\nType:%s \nLevel:%s \nName:%s \nMessage:%s \nReason: %s \nTimestamp:%s"
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
@@ -20,17 +21,35 @@ def send_ding(data, robot):
     return True
 
 def pod_envet(v1, level, cluster_name, robot):
+    logging.info("Pod事件监控子进程启动")
     w = watch.Watch()
     for event in w.stream(v1.list_event_for_all_namespaces):
         try:
             if event['object'].type == level and int(time()) - int(mktime((event['object'].last_timestamp + datetime.timedelta(hours=8)).timetuple())) <= 30:
                 last_timestamp = (event['object'].last_timestamp + datetime.timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S')
-                content = MSG_TEMPLATE % (cluster_name, level, event['object'].metadata.namespace, event['object'].metadata.name, event['object'].message, event['object'].reason, last_timestamp)
+                content = POD_MSG_TEMPLATE % (cluster_name, 'Pod', level, event['object'].metadata.namespace, event['object'].metadata.name, event['object'].message, event['object'].reason, last_timestamp)
                 data = {"msgtype": "text", "at": {"atMobiles": [], "isAtAll": False}, "text": {"content": content}}
                 if not send_ding(data, robot):
-                    logging.error("POD发送钉钉告警失败！")
+                    logging.error("Pod发送钉钉告警失败！")
         except:
             logging.error("解析event数据异常！")
+
+
+def node_envet(v1, level, cluster_name, robot):
+    logging.info("Node异常监控子进程启动")
+    w = watch.Watch()
+    for event in w.stream(v1.list_node):
+        try:
+            conditions = event['object'].status.conditions
+            for condition in conditions:
+                last_timestamp = (condition.last_heartbeat_time + datetime.timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S')
+                if (condition.type == 'Ready' and condition.status != 'True') or (condition.type != 'Ready' and condition.status != 'False'):
+                    content = NODE_MSG_TEMPLATE % (cluster_name, 'Node', level, event['object'].metadata.name, condition.message, condition.reason, last_timestamp)
+                    data = {"msgtype": "text", "at": {"atMobiles": [], "isAtAll": False}, "text": {"content": content}}
+                    if not send_ding(data, robot):
+                        logging.error("Node发送钉钉告警失败！")
+        except:
+            logging.error("解析Node数据异常！")
 
 def main():
     logging.info("集群监控机器人开始工作...")
@@ -75,7 +94,12 @@ def main():
     pod = threading.Thread(target=pod_envet, args=(v1, level, cluster_name, robot))
     pod.setDaemon(True)
     pod.start()
-    pod.join()
+
+    node = threading.Thread(target=node_envet, args=(v1, 'Error', cluster_name, robot))
+    node.setDaemon(True)
+    node.start()
+    
+    node.join()
 
 
 if __name__ == '__main__':
