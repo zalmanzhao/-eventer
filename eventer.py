@@ -8,7 +8,7 @@ import os
 import threading
 from time import mktime, time
 
-POD_MSG_TEMPLATE = "%s\nType:%s \nLevel:%s \nNamespace:%s \nName:%s \nMessage:%s \nReason: %s \nTimestamp:%s"
+POD_MSG_TEMPLATE = "%s\nType:%s \nLevel:%s \nNamespace:%s \nName:%s \nMessage:%s \nReason:%s \nTimestamp:%s"
 NODE_MSG_TEMPLATE = "%s\nType:%s \nLevel:%s \nName:%s \nMessage:%s \nReason: %s \nTimestamp:%s"
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
