@@ -42,6 +42,7 @@ def event_convergence(content, times, interval):
                 return True
             else:
                 EVENT_DATA[md5_data]['times'] = EVENT_DATA[md5_data]['times'] + 1
+                logging.info("事件次数小于%s次，或者距离上次告警时间相差不到%s秒，故而忽略本次事件告警，消息内容：%s" % (times, interval, content))
                 return False
 
 
