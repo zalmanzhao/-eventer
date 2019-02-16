@@ -9,8 +9,8 @@ import threading
 from time import mktime, time
 import hashlib
 
-POD_MSG_TEMPLATE = "%s\nType:%s \nLevel:%s \nNamespace:%s \nName:%s \nMessage:%s \nReason:%s \nTimestamp:%s"
-NODE_MSG_TEMPLATE = "%s\nType:%s \nLevel:%s \nName:%s \nMessage:%s \nReason: %s \nTimestamp:%s"
+POD_MSG_TEMPLATE = "### %s \n- Type: %s \n- Level: %s \n- Namespace: %s \n- Name: %s \n- Message: %s \n- Reason: %s \n- Timestamp: %s\n"
+NODE_MSG_TEMPLATE = "### %s \n- Type: %s \n- Level: %s \n- Name: %s \n- Message: %s \n- Reason: %s \n- Timestamp: %s\n"
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
@@ -67,7 +67,7 @@ def pod_envet(v1, level, cluster_name, robot, pod_at_all, times, interval):
                 cluster_name, 'Pod', level, event['object'].metadata.namespace, event['object'].metadata.name,
                 event['object'].message, event['object'].reason, last_timestamp)
                 if event_convergence(content, times, interval):
-                    data = {"msgtype": "text", "at": {"atMobiles": [], "isAtAll": pod_at_all}, "text": {"content": content}}
+                    data = {"msgtype": "markdown", "at": {"atMobiles": [], "isAtAll": pod_at_all}, "markdown": {"title": cluster_name, "text": content}}
                     if not send_ding(data, robot):
                         logging.error("Pod发送钉钉告警失败！")
         except:
@@ -89,7 +89,8 @@ def node_envet(v1, level, cluster_name, robot, node_at_all):
                     cluster_name, 'Node', level, event['object'].metadata.name, condition.message, condition.reason,
                     last_timestamp)
                     #Node异常告警不做消息收敛，需要及时处理
-                    data = {"msgtype": "text", "at": {"atMobiles": [], "isAtAll": node_at_all}, "text": {"content": content}}
+                    data = {"msgtype": "markdown", "at": {"atMobiles": [], "isAtAll": node_at_all},
+                            "markdown": {"title": cluster_name, "text": content}}
                     if not send_ding(data, robot):
                         logging.error("Node发送钉钉告警失败！")
         except:
@@ -138,7 +139,7 @@ def main():
             pod_at_all = False
     else:
         pod_at_all = False
-        
+
     if "NODE_AT_ALL" in os.environ:
         if os.environ["NODE_AT_ALL"].lower() == 'true':
             node_at_all = True
