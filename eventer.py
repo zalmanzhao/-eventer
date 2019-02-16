@@ -145,7 +145,7 @@ def main():
         else:
             node_at_all = False
     else:
-        node_at_all = False
+        node_at_all = True
 
     config.load_incluster_config()
     configuration = client.Configuration()
