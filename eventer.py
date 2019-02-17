@@ -9,8 +9,8 @@ import threading
 from time import mktime, time
 import hashlib
 
-POD_MSG_TEMPLATE = "### %s \n- Type: %s \n- Level: %s \n- Namespace: %s \n- Name: %s \n- Message: %s \n- Reason: %s \n- Timestamp: %s\n"
-NODE_MSG_TEMPLATE = "### %s \n- Type: %s \n- Level: %s \n- Name: %s \n- Message: %s \n- Reason: %s \n- Timestamp: %s\n"
+POD_MSG_TEMPLATE = "### %s \n- Type:%s \n- Level:%s \n- Namespace:%s \n- Name:%s \n- Message:%s \n- Reason:%s \n- Timestamp:%s\n"
+NODE_MSG_TEMPLATE = "### %s \n- Type:%s \n- Level:%s \n- Name:%s \n- Message:%s \n- Reason:%s \n- Timestamp:%s\n"
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
