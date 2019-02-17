@@ -24,8 +24,8 @@ def get_md5(data):
 
 
 #消息收敛
-def event_convergence(content, times, interval):
-    md5_data = get_md5(content)
+def event_convergence(content, times, interval, last_time):
+    md5_data = get_md5(content.replace(last_time, 'x'))
     #第一次出现需要告警
     if md5_data not in EVENT_DATA.keys():
         EVENT_DATA[md5_data] = {'times': 1, 'last_timestamp': int(time())}
@@ -61,12 +61,12 @@ def pod_envet(v1, level, cluster_name, robot, pod_at_all, times, interval):
         try:
             if event['object'].type == level and int(time()) - int(
                     mktime((event['object'].last_timestamp + datetime.timedelta(hours=8)).timetuple())) <= 30:
-                last_timestamp = (event['object'].last_timestamp + datetime.timedelta(hours=8)).strftime(
+                last_time = (event['object'].last_timestamp + datetime.timedelta(hours=8)).strftime(
                     '%Y-%m-%d %H:%M:%S')
                 content = POD_MSG_TEMPLATE % (
-                cluster_name, 'Pod', level, event['object'].metadata.namespace, event['object'].metadata.name,
-                event['object'].message, event['object'].reason, last_timestamp)
-                if event_convergence(content, times, interval):
+                '【' + cluster_name + '】 Pod事件监控', 'Pod', level, event['object'].metadata.namespace, event['object'].metadata.name,
+                event['object'].message, event['object'].reason, last_time)
+                if event_convergence(content, times, interval, last_time):
                     data = {"msgtype": "markdown", "at": {"atMobiles": [], "isAtAll": pod_at_all}, "markdown": {"title": cluster_name, "text": content}}
                     if not send_ding(data, robot):
                         logging.error("Pod发送钉钉告警失败！")
@@ -81,13 +81,13 @@ def node_envet(v1, level, cluster_name, robot, node_at_all):
         try:
             conditions = event['object'].status.conditions
             for condition in conditions:
-                last_timestamp = (condition.last_heartbeat_time + datetime.timedelta(hours=8)).strftime(
+                last_time = (condition.last_heartbeat_time + datetime.timedelta(hours=8)).strftime(
                     '%Y-%m-%d %H:%M:%S')
                 if (condition.type == 'Ready' and condition.status != 'True') or (
                         condition.type != 'Ready' and condition.status != 'False'):
                     content = NODE_MSG_TEMPLATE % (
-                    cluster_name, 'Node', level, event['object'].metadata.name, condition.message, condition.reason,
-                    last_timestamp)
+                    '【' + cluster_name + '】 Node异常监控', 'Node', level, event['object'].metadata.name, condition.message, condition.reason,
+                    last_time)
                     #Node异常告警不做消息收敛，需要及时处理
                     data = {"msgtype": "markdown", "at": {"atMobiles": [], "isAtAll": node_at_all},
                             "markdown": {"title": cluster_name, "text": content}}
@@ -125,12 +125,12 @@ def main():
     if "TIMES" in os.environ:
         times = int(os.environ["TIMES"])
     else:
-        times = 10
+        times = 15
 
     if "INTERVAL" in os.environ:
         interval = int(os.environ["INTERVAL"])
     else:
-        interval = 180
+        interval = 300
 
     if "POD_AT_ALL" in os.environ:
         if os.environ["POD_AT_ALL"].lower() == 'true':
