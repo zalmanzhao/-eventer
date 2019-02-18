@@ -45,4 +45,10 @@ spec:
           value: 'https://oapi.dingtalk.com/robot/send?access_token=xxxxxxxxxxxxxxxxxx'
         - name: LEVEL
           value: 'Warning'
+        - name: TIMES
+          value: '10'
+        - name: INTERVAL
+          value: '180'
+        - name: NODE_AT_ALL
+          value: 'True'
 
