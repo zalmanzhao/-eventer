@@ -9,8 +9,8 @@
 ## 部署步骤
 ### 1 build为docker镜像
 ```
-docker build -t xxxx.xxx.com/eventer:v1.0.0 .
-docker push xxxx.xxx.com/eventer:v1.0.0
+docker build -t xxxx.xxx.com/eventer:v1.0.2 .
+docker push xxxx.xxx.com/eventer:v1.0.2
 ```
 ### 2 在钉钉群生成钉钉机器人
 
