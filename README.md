@@ -24,7 +24,7 @@ docker push xxxx.xxx.com/eventer:v1.0.0
 * INTERVAL 收敛告警间隔  默认300秒
 * POD_AT_ALL Pod事件告警是否@所有人  True 或者 False  默认为 False
 * NODE_AT_ALL Node异常告警是否@所有人  True 或者 False 默认为 True
-
+* ES_HOST 事件存入ES  为空时为不存
 
 ### 4 应用eventer.yaml
 ```
