@@ -16,7 +16,7 @@ RUN wget https://ops-files.oss-cn-hangzhou.aliyuncs.com/pkg/Python-3.7.0.tar.xz 
 
 ENV TZ=Asia/Shanghai
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && pip3 install kubernetes -i https://mirrors.aliyun.com/pypi/simple/
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && pip3 install kubernetes elasticsearch pytz -i https://mirrors.aliyun.com/pypi/simple/
 
 ADD ./eventer.py /opt
 
