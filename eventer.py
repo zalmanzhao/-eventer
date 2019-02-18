@@ -16,6 +16,52 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 EVENT_DATA = {}
 
+def save_es(cluster_name, type, event, es_host):
+    cst_tz = timezone('Asia/Shanghai')
+    now = datetime.datetime.now().replace(tzinfo=cst_tz)
+    utctime = now.astimezone(utc)
+    try:
+        es = Elasticsearch(hosts=es_host)
+    except:
+        logging.error("初始化es失败")
+    else:
+        if type == 'event':
+            try:
+                doc = {}
+                doc['Message'] = event['object'].message
+                doc['Reason'] = event['object'].reason
+                doc['Name'] = event['object'].metadata.name
+                doc['Namespace'] = event['object'].metadata.namespace
+                doc['Type'] = 'event'
+                doc['Level'] = event['object'].type
+                doc['ClusterName'] = cluster_name
+                doc['Timestamp'] = (event['object'].last_timestamp + datetime.timedelta(hours=8)).strftime(
+                            '%Y-%m-%d %H:%M:%S')
+                doc['timestamp'] = utctime
+                es.index(index=cluster_name.lower(), doc_type="text", body=doc)
+            except:
+                logging.error("event保存es失败")
+        else:
+            try:
+                conditions = event['object'].status.conditions
+                for condition in conditions:
+                    if (condition.type == 'Ready' and condition.status != 'True') or (
+                            condition.type != 'Ready' and condition.status != 'False'):
+                        doc = {}
+                        doc['Message'] = condition.message
+                        doc['Reason'] = condition.reason
+                        doc['Name'] = event['object'].metadata.name
+                        doc['Type'] = 'node'
+                        doc['Level'] = 'Error'
+                        doc['ClusterName'] = cluster_name
+                        doc['Timestamp'] = (event['object'].last_timestamp + datetime.timedelta(hours=8)).strftime(
+                            '%Y-%m-%d %H:%M:%S')
+                        doc['timestamp'] = utctime
+                        es.index(index=cluster_name.lower(), doc_type="text", body=doc)
+            except:
+                logging.error("node事件保存es失败")
+                
+
 def get_md5(data):
     m1 = hashlib.md5()
     m1.update(data.encode("utf-8"))
@@ -54,10 +100,12 @@ def send_ding(data, robot):
     return True
 
 
-def pod_envet(v1, level, cluster_name, robot, pod_at_all, times, interval):
+def pod_event(v1, level, cluster_name, robot, pod_at_all, times, interval, es_host):
     logging.info("Pod事件监控子进程启动")
     w = watch.Watch()
     for event in w.stream(v1.list_event_for_all_namespaces):
+        if es_host != '':
+            save_es(cluster_name, 'event', event, es_host)
         try:
             if event['object'].type == level and int(time()) - int(
                     mktime((event['object'].last_timestamp + datetime.timedelta(hours=8)).timetuple())) <= 30:
@@ -74,10 +122,12 @@ def pod_envet(v1, level, cluster_name, robot, pod_at_all, times, interval):
             logging.error("解析event数据异常！")
 
 
-def node_envet(v1, level, cluster_name, robot, node_at_all):
+def node_event(v1, level, cluster_name, robot, node_at_all, es_host):
     logging.info("Node异常监控子进程启动")
     w = watch.Watch()
     for event in w.stream(v1.list_node):
+        if es_host != '':
+            save_es(cluster_name, 'node', event, es_host)
         try:
             conditions = event['object'].status.conditions
             for condition in conditions:
@@ -147,6 +197,11 @@ def main():
             node_at_all = False
     else:
         node_at_all = True
+        
+    if "ES_HOST" in os.environ:
+        es_host = os.environ["ES_HOST"]
+    else:
+        es_host = ''
 
     config.load_incluster_config()
     configuration = client.Configuration()
@@ -154,11 +209,11 @@ def main():
     configuration.verify_ssl = False
     v1 = client.CoreV1Api(client.ApiClient(configuration))
 
-    pod = threading.Thread(target=pod_envet, args=(v1, level, cluster_name, robot, pod_at_all, times, interval))
+    pod = threading.Thread(target=pod_event, args=(v1, level, cluster_name, robot, pod_at_all, times, interval, es_host))
     pod.setDaemon(True)
     pod.start()
 
-    node = threading.Thread(target=node_envet, args=(v1, 'Error', cluster_name, robot, node_at_all))
+    node = threading.Thread(target=node_event, args=(v1, 'Error', cluster_name, robot, node_at_all, es_host))
     node.setDaemon(True)
     node.start()
 
