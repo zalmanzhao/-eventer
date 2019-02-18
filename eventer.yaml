@@ -29,7 +29,7 @@ spec:
       serviceAccountName: admin
       containers:
       - name: eventer
-        image: xxxx.xxx.com/eventer:v1.0.0
+        image: xxxx.xxx.com/eventer:v1.0.2
         imagePullPolicy: Always
         resources:
           limits:
