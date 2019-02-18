@@ -4,10 +4,7 @@
 
 ### 部署成功后30s，eventer即开始生效
 
-### 参数说明
-* CLUSTER_NAME 自定义集群名称
-* DING_ROBOT 钉钉机器人
-* LEVEL 日志级别  Normal或者Warning，默认为Warning
+
 
 ## 部署步骤
 ### 1 build为docker镜像
@@ -18,7 +15,16 @@ docker push xxxx.xxx.com/eventer:v1.0.0
 ### 2 在钉钉群生成钉钉机器人
 
 ### 3 修改eventer.yaml里面的参数
-DING_ROBOT 和 CLUSTER_NAME
+#### 参数说明
+* CLUSTER_NAME 自定义集群名称
+* DING_ROBOT 钉钉机器人
+#### 可选参数
+* LEVEL 日志级别  Normal或者Warning，默认为Warning
+* TIMES 收敛告警次数
+* INTERVAL 收敛告警间隔
+* POD_AT_ALL Pod事件告警是否@所有人  True 或者 False
+* NODE_AT_ALL Node异常告警是否@所有人  True 或者 False
+
 
 ### 4 应用eventer.yaml
 ```
