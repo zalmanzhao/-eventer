@@ -20,10 +20,10 @@ docker push xxxx.xxx.com/eventer:v1.0.0
 * DING_ROBOT 钉钉机器人
 #### 可选参数
 * LEVEL 日志级别  Normal或者Warning，默认为Warning
-* TIMES 收敛告警次数
-* INTERVAL 收敛告警间隔
-* POD_AT_ALL Pod事件告警是否@所有人  True 或者 False
-* NODE_AT_ALL Node异常告警是否@所有人  True 或者 False
+* TIMES 收敛告警次数 默认15次
+* INTERVAL 收敛告警间隔  默认300秒
+* POD_AT_ALL Pod事件告警是否@所有人  True 或者 False  默认为 False
+* NODE_AT_ALL Node异常告警是否@所有人  True 或者 False 默认为 True
 
 
 ### 4 应用eventer.yaml
