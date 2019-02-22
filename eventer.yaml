@@ -47,5 +47,9 @@ spec:
           - '--log-level=WARNING'
           - '--level=Warning'
           - '--cluster-name=生产集群'
+          - '--times=10'
+          - '--interval=180'
+          - '--event-at-all=False'
+          - '--node-at-all=True'
           - '--es-host=10.30.1.185:9200'
 
